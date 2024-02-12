@@ -1,0 +1,463 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.cgg.spring.orm</groupId>
+	<artifactId>springorm</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>springorm</name>
+	<url>http://maven.apache.org</url>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+			<version>5.3.9</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.springframework/spring-context -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>5.3.9</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.springframework/spring-orm -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-orm</artifactId>
+			<version>5.3.9</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>42.2.1</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>
+-----------------------------------------------------------------------------
+package com.cgg.spring.orm.entities;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(name="student_details")
+public class Student {
+	
+	@Id
+	@Column(name="student_id")
+	private int studentId;
+	@Column(name="student_name")
+	private String studentName;
+	@Column(name="student_city")
+	private String studentCity;
+	
+	public Student() {
+		super();
+		// TODO Auto-generated constructor stub
+	}
+
+	public int getStudentId() {
+		return studentId;
+	}
+
+	public void setStudentId(int studentId) {
+		this.studentId = studentId;
+	}
+
+	public String getStudentName() {
+		return studentName;
+	}
+
+	public void setStudentName(String studentName) {
+		this.studentName = studentName;
+	}
+
+	public String getStudentCity() {
+		return studentCity;
+	}
+
+	public void setStudentCity(String studentCity) {
+		this.studentCity = studentCity;
+	}
+	
+	
+
+}
+---------------------------------------------------------------------
+package com.cgg.spring.orm.dao;
+
+import java.io.Serializable;
+
+import org.springframework.orm.hibernate5.HibernateTemplate;
+
+import com.cgg.spring.orm.entities.Student;
+
+public class StudentDao {
+	
+	private HibernateTemplate hibernateTemplate;
+	
+	//save student
+	public int insert(Student student) {
+		//insert
+		Integer i = (Integer)hibernateTemplate.save(student);
+		return i;
+	}
+
+	public HibernateTemplate getHibernateTemplate() {
+		return hibernateTemplate;
+	}
+
+	public void setHibernateTemplate(HibernateTemplate hibernateTemplate) {
+		this.hibernateTemplate = hibernateTemplate;
+	}
+	
+	
+
+}
+----------------------------------------------------------------------------
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+   http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+   http://www.springframework.org/schema/context
+   http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<bean id="ds"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName"
+			value="org.postgresql.Driver" />
+		<property name="url"
+			value="jdbc:postgresql://localhost:5432/springjdbc" />
+		<property name="username" value="postgres" />
+		<property name="password" value="root" />
+	</bean>
+	<bean id="factory"
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<!-- data source -->
+		<property name="dataSource" ref="ds" />
+		<!-- hibernate properties -->
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+			</props>
+		</property>
+		<!-- annotated classes -->
+		<property name="annotatedClasses">
+			<list>
+				<value>com.cgg.spring.orm.entities.Student</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean class="org.springframework.orm.hibernate5.HibernateTemplate"
+		id="hibernateTemplate">
+		<property name="sessionFactory" ref="factory" />
+	</bean>
+	<bean class="com.cgg.spring.orm.dao.StudentDao" id="studentDao">
+		<property name="hibernateTemplate" ref="hibernateTemplate" />
+	</bean>
+</beans>
+--------------------------------------------------------------------
+package com.cgg.spring.orm;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import com.cgg.spring.orm.dao.StudentDao;
+import com.cgg.spring.orm.entities.Student;
+
+/**
+ * Hello world!
+ *
+ */
+public class App 
+{
+    public static void main( String[] args )
+    {
+        ApplicationContext context = new ClassPathXmlApplicationContext("config.xml");
+        StudentDao studentDao = context.getBean("studentDao",StudentDao.class);
+        
+        Student student = new Student();
+        student.setStudentId(2314);
+        student.setStudentName("abc");
+        student.setStudentCity("hyderanad");
+        
+        int r=studentDao.insert(student);
+        System.out.println("done "+r);
+    }
+}
+----------------------------------------------------------------
+package com.cgg.spring.orm.dao;
+
+import org.springframework.orm.hibernate5.HibernateTemplate;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.cgg.spring.orm.entities.Student;
+
+public class StudentDao {
+	
+	private HibernateTemplate hibernateTemplate;
+	
+	//save student
+	@Transactional
+	public int insert(Student student) {
+		//insert
+		Integer i = (Integer)hibernateTemplate.save(student);
+		return i;
+	}
+
+	public HibernateTemplate getHibernateTemplate() {
+		return hibernateTemplate;
+	}
+
+	public void setHibernateTemplate(HibernateTemplate hibernateTemplate) {
+		this.hibernateTemplate = hibernateTemplate;
+	}
+	
+	
+
+}
+---------------------------------------------------------------
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+   http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+   http://www.springframework.org/schema/context
+   http://www.springframework.org/schema/context/spring-context-3.0.xsd
+   http://www.springframework.org/schema/tx
+   http://www.springframework.org/schema/tx/spring-tx.xsd">
+   
+   <tx:annotation-driven/>
+
+	<bean id="ds"
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName"
+			value="org.postgresql.Driver" />
+		<property name="url"
+			value="jdbc:postgresql://localhost:5432/springjdbc" />
+		<property name="username" value="postgres" />
+		<property name="password" value="root" />
+	</bean>
+	<bean id="factory"
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<!-- data source -->
+		<property name="dataSource" ref="ds" />
+		<!-- hibernate properties -->
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+			</props>
+		</property>
+		<!-- annotated classes -->
+		<property name="annotatedClasses">
+			<list>
+				<value>com.cgg.spring.orm.entities.Student</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean class="org.springframework.orm.hibernate5.HibernateTemplate"
+		id="hibernateTemplate">
+		<property name="sessionFactory" ref="factory" />
+	</bean>
+	<bean class="com.cgg.spring.orm.dao.StudentDao" id="studentDao">
+		<property name="hibernateTemplate" ref="hibernateTemplate" />
+	</bean>
+	
+	<bean id="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+	  <property name="sessionFactory" ref="factory"/>
+	</bean>
+</beans>
+----------------------------------------------------------------
+package com.cgg.spring.orm.dao;
+
+import java.util.List;
+
+import org.springframework.orm.hibernate5.HibernateTemplate;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.cgg.spring.orm.entities.Student;
+
+public class StudentDao {
+	
+	private HibernateTemplate hibernateTemplate;
+	
+	//save student
+	@Transactional
+	public int insert(Student student) {
+		//insert
+		Integer i = (Integer)hibernateTemplate.save(student);
+		return i;
+	}
+
+	//get the single data(object)
+	public Student getStudent(int studentId) {
+		Student student = this.hibernateTemplate.get(Student.class, studentId);
+		return student;
+	}
+	
+	//get all students(all rows)
+	public List<Student> getAllStudents(){
+		List<Student> students = this.hibernateTemplate.loadAll(Student.class);
+		return students;
+	}
+	//deleting the data
+	@Transactional
+	public void deleteStudent(int studentId) {
+		Student student = this.hibernateTemplate.get(Student.class,studentId);
+		this.hibernateTemplate.delete(student);
+	}
+	
+	//updating data..
+	@Transactional
+	public void updateStudent(Student student) {
+		this.hibernateTemplate.update(student);
+	}
+	public HibernateTemplate getHibernateTemplate() {
+		return hibernateTemplate;
+	}
+
+	public void setHibernateTemplate(HibernateTemplate hibernateTemplate) {
+		this.hibernateTemplate = hibernateTemplate;
+	}
+	
+	
+
+}
+----------------------------------------------------------
+package com.cgg.spring.orm;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.List;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import com.cgg.spring.orm.dao.StudentDao;
+import com.cgg.spring.orm.entities.Student;
+
+/**
+ * Hello world!
+ *
+ */
+public class App 
+{
+    public static void main( String[] args )
+    {
+        ApplicationContext context = new ClassPathXmlApplicationContext("config.xml");
+        StudentDao studentDao = context.getBean("studentDao",StudentDao.class);
+        
+		/*
+		 * Student student = new Student(); student.setStudentId(2314);
+		 * student.setStudentName("abc"); student.setStudentCity("hyderanad");
+		 * 
+		 * int r=studentDao.insert(student); System.out.println("done "+r);
+		 */
+        
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        boolean go=true;
+        while(go) {
+        System.out.println("PRESS 1 for add new student");
+        System.out.println("PRESS 2 for display all students");
+        System.out.println("PRESS 3 get detail of single student");
+        System.out.println("PRESS 4 for delete student");
+        System.out.println("PRESS 5 for update student");
+        System.out.println("PRESS 6 for exit");
+        
+        try {
+        	
+        	int input = Integer.parseInt(br.readLine());
+        	switch (input) {
+			case 1:
+				//add a new student
+				System.out.println("Enter user id: ");
+				int uId = Integer.parseInt(br.readLine());
+				
+				System.out.println("Enter user name: ");
+				String UName = br.readLine();
+				
+				System.out.println("Enter user city: ");
+				String uCity = br.readLine();
+				
+				Student student = new Student();
+				student.setStudentId(uId);
+				student.setStudentName(UName);
+				student.setStudentCity(uCity);
+				
+				int r = studentDao.insert(student);
+				System.out.println(r+" student added");
+				System.out.println("************************************");
+				System.out.println();
+				break;
+			case 2:
+				//display all students
+				List<Student> allStudents = studentDao.getAllStudents();
+				for(Student st:allStudents) {
+					System.out.println("Id : "+st.getStudentId());
+					System.out.println("Name : "+st.getStudentName());
+					System.out.println("City : "+st.getStudentCity());
+					System.out.println("______________________________________");
+				}
+				System.out.println("**********************************************");
+				break;
+			case 3:
+				//get single student data
+				System.out.println("Enter user id: ");
+				int userId = Integer.parseInt(br.readLine());
+				Student std = studentDao.getStudent(userId);
+				System.out.println("Id : "+std.getStudentId());
+				System.out.println("Name : "+std.getStudentName());
+				System.out.println("City : "+std.getStudentCity());
+				System.out.println("______________________________________");
+				break;
+			case 4:
+				//delete student
+				System.out.println("Enter user id: ");
+				int id = Integer.parseInt(br.readLine());
+				studentDao.deleteStudent(id);
+				System.out.println("Student deleted.....");
+				break;
+			case 5:
+				//update student
+				break;
+
+			case 6:
+				//exit
+				go=false;
+				break;
+			}
+        	
+        }
+        catch(Exception e) {
+        	System.out.println("Invalid input try with another one !!");
+        	System.out.println(e.getMessage());
+        }
+        }
+        System.out.println("Thankyou for using my application");
+        System.out.println("See you soon !!");
+    }
+}

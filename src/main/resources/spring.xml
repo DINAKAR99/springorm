@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+                        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+                        ">
+
+    <context:annotation-config />
+    <tx:annotation-driven proxy-target-class="true" />
+
+    <context:component-scan base-package="cgg.spring.orm.dao" />
+
+    <bean class=" org.springframework.jdbc.datasource.DriverManagerDataSource" name="source">
+        <property name="driverClassName" value="org.postgresql.Driver"></property>
+        <property name="url" value="jdbc:postgresql://localhost:5433/springjdbc"></property>
+        <property name="username" value="postgres"></property>
+        <property name="password" value="dinakar1."></property>
+    </bean>
+
+    <!-- Transaction Manager-->
+    <!-- <bean id="transactionManager"
+        class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+        <property name="sessionFactory" ref="factory" />
+    </bean> -->
+
+
+    <!-- jpa Transaction Manager-->
+    <bean id="transactionManager"
+        class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory" />
+    </bean>
+
+
+    <!-- <bean class="org.springframework.orm.hibernate5.LocalSessionFactoryBean" name="factory"> -->
+
+    <!-- data source -->
+    <!-- <property name="dataSource" ref="source"></property> -->
+    <!-- data source -->
+
+    <!-- hibernatePorps -->
+    <!-- <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+                <prop key="hibernate.show_sql">true</prop>
+                <prop key="hibernate.format_sql">true</prop>
+
+            </props>
+        </property> -->
+    <!-- hibernatePorps -->
+
+    <!-- annotatedclass -->
+    <!-- <property name="annotatedClasses">
+
+            <list>
+                <value>cgg.spring.orm.entities.Student</value>
+            </list>
+        </property> -->
+    <!-- annotatedclass -->
+    <!-- </bean> -->
+
+    <!-- entitymanager -->
+    <bean class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean"
+        name="entityManagerFactory">
+
+        <property name="dataSource" ref="source"></property>
+        <property name="packagesToScan">
+
+            <array>
+                <value>cgg.spring.orm.entities</value>
+            </array>
+        </property>
+
+        <property name="jpaVendorAdapter">
+            <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter"></bean>
+        </property>
+
+        <property name="jpaProperties">
+            <props>
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
+                <prop key="hibernate.show_sql">true</prop>
+                <prop key="hibernate.format_sql">true</prop>
+            </props>
+        </property>
+    </bean>
+    <!-- entitymanager -->
+
+    <!-- <bean class="org.springframework.orm.hibernate5.HibernateTemplate"
+        name="hibernate_template">
+
+        <property name="sessionFactory" ref="factory">
+
+        </property>
+    </bean> -->
+
+    <!-- <bean class="cgg.spring.orm.dao.StudentdaoImpl" name="daoimpl">
+
+
+        <property name="h1" ref="hibernate_template"></property>
+    </bean> -->
+
+</beans>
